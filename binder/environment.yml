@@ -8,7 +8,7 @@ channels:
   - defaults
 dependencies:
   - rpy2=3.3.2
-  - r-base=3.6.3
+  - r-base=3.6.1-3bionic
   - pandas=1.1.0
   - numpy=1.18.5
   - scipy=1.5.2
