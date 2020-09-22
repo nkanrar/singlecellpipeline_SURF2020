@@ -22,7 +22,6 @@ dependencies:
   - gsl=2.6
   - tzlocal=2.0.0
   - simplegeneric=0.8.1
-  - natsort=0.7.1
   - h5py=2.10.0
   - tqdm=4.48.2
   - patsy=0.5.1
