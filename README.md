@@ -4,7 +4,7 @@
 Anaconda Environment Installation with environment.yml
 1. Navigate to the binder folder and download the environment.yml file
 2. conda env create -f environment.yml
-$ R # open R in command line
+3. R # open R in command line
 4. install.packages("data.table", type = "source", repos = "https://Rdatatable.gitlab.io/data.table") # data.table has issues on CRAN repository, for now install from gitlab source code
 5. install.packages(c('devtools', 'gam', 'RColorBrewer', 'BiocManager', 'plotly'))
 6. update.packages(ask=F)
