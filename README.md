@@ -2,7 +2,7 @@
  This is a repository for my SURF code. 
 
 Anaconda Environment Installation with environment.yml
-1. Navigate to the binder folder and download the environment.yml and install.R files
+1. Navigate to the binder folder and download the environment.yml file
 2. conda env create -f environment.yml
 3. R # open R in command line
 4. install.packages("data.table", type = "source", repos = "https://Rdatatable.gitlab.io/data.table") # data.table has issues on CRAN repository, for now install from gitlab source code
