@@ -1,5 +1,7 @@
 # SURF2020
  This is a repository for my SURF code. 
+ 
+ The data files for the Jupyter notebooks are too big to upload here. For the forelimb dataset, the expression matrix is linked by the authors, but the kidney data (as a csv) is not available online.
 
 Anaconda Environment Installation with environment.yml
 1. Navigate to the binder folder and download the environment.yml file
