@@ -17,7 +17,7 @@ import datetime
 from sklearn.metrics import silhouette_samples, silhouette_score
 from sklearn.cluster import KMeans
 from itertools import combinations
-from scipy.spatial.distance import cosine, squareform
+from scipy.spatial.distance import cosine, squareform, euclidean
 import math
 
 # Here are the lists of genes for our main pathways of interest.
@@ -29,16 +29,30 @@ wnts = ['Wnt1', 'Wnt2', 'Wnt2b', 'Wnt3', 'Wnt3a', 'Wnt4', 'Wnt5a',
 wntr = ['Lrp5', 'Lrp6', 'Dvl1', 'Dvl2', 'Dvl3', 'Fzd1', 'Fzd2', 'Fzd3',
        'Fzd4', 'Fzd5', 'Fzd6', 'Fzd7', 'Fzd8', 'Fzd9', 'Fzd10']
 
-bmps = ['Bmp3', 'Bmp4', 'Bmp5', 'Bmp6', 'Bmp7', 'Bmp8a', 'Bmp2',
+bmps = ['Bmp2', 'Bmp3', 'Bmp4', 'Bmp5', 'Bmp6', 'Bmp7', 'Bmp8a',
             'Bmp10', 'Bmp11', 'Bmp15', 'Gdf6', 'Gdf7', 'Gdf5', 'Gdf10',
             'Gdf11']
 
-bmpr = ["Bmpr1a" ,"Bmpr1b" ,"Acvr1"  ,"Acvrl1" ,"Acvr1b" ,"Tgfbr1" , "Acvr1c",
-            "Acvr2a", "Acvr2b", "Bmpr2" ,"Tgfbr2"]
+bmpr = ["Bmpr1a" ,"Bmpr1b" ,"Acvr1"  ,"Acvrl1", "Acvr1b", "Acvr1c",
+            "Acvr2a", "Acvr2b", "Bmpr2", "Tgfbr1","Tgfbr2"]
 
 notch = ["Dll1", "Dll3","Dll4", "Jag1", "Jag2", "Notch1", "Notch2", 
              "Notch3", "Notch4", "Mfng", "Rfng", "Lfng"]
 
+ephr = ['Epha1', 'Epha2', 'Epha3', 'Epha4', 'Epha5', 'Epha7', 'Ephb1', 
+                 'Ephb2', 'Ephb3', 'Ephb4', 'Ephb6']
+
+ephl = ['Efna1', 'Efna2', 'Efna3', 'Efna4', 'Efna5', 'Efnb1', 
+               'Efnb2', 'Efnb3']
+
+fgfr = ['Fgf1', 'Fgf10', 'Fgf11', 'Fgf12', 'Fgf13', 'Fgf14', 'Fgf16', 'Fgf18', 
+        'Fgf2', 'Fgf7', 'Fgf9', 'Fgfbp1', 'Fgfbp3', 'Fgfr1', 'Fgfr1op', 'Fgfr1op2', 
+        'Fgfr2', 'Fgfr3', 'Fgfr4', 'Fgfrl1']
+
+splice_srsf = ['Srsf1', 'Srsf10', 'Srsf11', 'Srsf12', 'Srsf2', 'Srsf3', 'Srsf4', 
+               'Srsf5', 'Srsf6', 'Srsf7', 'Srsf9']
+
+lpa = ['Lpar1', 'Lpar2', 'Lpar3', 'Lpar4', 'Lpar5', 'Lpar6']
 
 def get_genes(adata, genes):
     '''This function gets genes of interest that have not been filtered out.
@@ -100,6 +114,7 @@ def vis_pre_processing(adata, genes_range = (0,10000), counts_range = (0, 400000
                   title = 'Counts vs. Genes', ax=ax[1,1], show=False)
     ax[1,1].set_xlabel('Counts')
     ax[1,1].set_ylabel('Genes')
+    ax[1,1].grid(False)
     fig.suptitle(title)
     fig.tight_layout(rect=[0, 0.03, 1, 0.95])
     plt.show()
@@ -164,6 +179,7 @@ def vis_post_processing(adata, genes_range = (0,10000), counts_range = (0, 40000
     sc.pl.scatter(adata, x='n_counts', y='n_genes', size=20,ax=ax[1,0], title='Counts vs. Genes',show=False)
     ax[1,0].set_xlabel('Counts')
     ax[1,0].set_ylabel('Genes')
+    ax[1,0].grid(False)
     ax[1,1].axis('off')
     plt.show()
     return fig
@@ -577,7 +593,7 @@ def heatmap(adata, pathway_genes, num_clust, name, metric='cosine', method="comp
         str_linkage.append(str(i))
     new_dict = dict(zip(df.columns, str_linkage))
 
-    adata.obs[name] = adata.obs[key].replace(new_dict)
+    adata.obs[name] = adata.obs[key].replace(new_dict).astype('category')
     if norm:
         df = gene_expression_norm(adata, pathway_genes,partition_key=key)
     else:
@@ -739,7 +755,7 @@ def diff_exp_between_clusters(adata, dict_pathway_genes,key='leiden', method='wi
     # Just don't want to print out ranking genes information every time we run it.
     sc.settings.verbosity = 1 
     # Get the different number of combinations of leiden pairs.
-    comb = list(combinations(range(0,len(adata.obs[key].unique())), 2))
+    comb = list(combinations(adata.obs[key].unique(), 2))
     
     diff_exp={}
     for i in dict_pathway_genes.keys():
@@ -819,7 +835,7 @@ def trial_diff_exp_between_clusters(c, adata, dict_pathway_genes,key='leiden', m
     #needs to be divided by (if we do a Bonferroni Correction): "+str(len(comb)))
     return diff_exp
 
-def weight_dist(ge_df, weight_df):
+def weight_dist(ge_df, weight_df, metric = "cosine"):
     '''Returns the flattened distance matrix of distances between leiden clusters based on 
     gene expression.
     
@@ -837,20 +853,32 @@ def weight_dist(ge_df, weight_df):
     ge_df = ge_df.transpose()
     combs = list(combinations(ge_df.index, 2))
     return_list = np.zeros(len(combs))
-    for idx,i in enumerate(combs):
-        w1 = np.dot(ge_df.loc[i[0]], weight_df.loc[i[0]][i[1]])
-        w2 = np.dot(ge_df.loc[i[1]], weight_df.loc[i[0]][i[1]])
-        if 1.0 not in weight_df.loc[i[0]][i[1]]:
-            dist = 0
-        elif (w1==0.0 or w2==0.0):
-            dist = 0
-        else:
-            dist = cosine(ge_df.loc[i[0]], ge_df.loc[i[1]], weight_df.loc[i[0]][i[1]])
-        return_list[idx] = dist
+    if metric == "cosine":
+        for idx,i in enumerate(combs):
+            w1 = np.dot(ge_df.loc[i[0]], weight_df.loc[i[0]][i[1]])
+            w2 = np.dot(ge_df.loc[i[1]], weight_df.loc[i[0]][i[1]])
+            if 1.0 not in weight_df.loc[i[0]][i[1]]:
+                dist = 0
+            elif (w1==0.0 or w2==0.0):
+                dist = 0
+            else:
+                dist = cosine(ge_df.loc[i[0]], ge_df.loc[i[1]], weight_df.loc[i[0]][i[1]])
+            return_list[idx] = dist
+    if metric == "euclidean":
+        for idx,i in enumerate(combs):
+            w1 = np.dot(ge_df.loc[i[0]], weight_df.loc[i[0]][i[1]])
+            w2 = np.dot(ge_df.loc[i[1]], weight_df.loc[i[0]][i[1]])
+            if 1.0 not in weight_df.loc[i[0]][i[1]]:
+                dist = 0
+            elif (w1==0.0 or w2==0.0):
+                dist = 0
+            else:
+                dist = euclidean(ge_df.loc[i[0]], ge_df.loc[i[1]], weight_df.loc[i[0]][i[1]])
+            return_list[idx] = dist
     return return_list
 
 def weighted_silhouette_plot(adata, pathway_names,
-                             pathway_genes, weight_df, key = "leiden",
+                             pathway_genes, weight_df, key = "leiden", metric = "cosine",
                              norm = True, ax=None):
     '''This function gives silhouette scores and scatterplots for clusters based on our self-defined distance
     metric.
@@ -879,7 +907,7 @@ def weighted_silhouette_plot(adata, pathway_names,
         df = gene_expression_norm(adata, pathway_genes, partition_key = key)
     else:
         df = gene_expression(adata, pathway_genes, partition_key = key)
-    d = weight_dist(df, weight_df)
+    d = weight_dist(df, weight_df, metric = metric)
     L=sch.linkage(d, metric='euclidean', method='complete')
     X = squareform(d)
     for i in range_n_clusters:
@@ -895,7 +923,7 @@ def weighted_silhouette_plot(adata, pathway_names,
 
 def weighted_heatmap(adata, pathway_genes, pathway_pvals, num_clust, name, key = "leiden",norm = True,
                      leg_axes = (1.3, 1.3), leg_cols = 1, figsize=(10,6),
-                    metric = "cosine"):
+                    metric = "euclidean"):
     '''We group the leiden clusters based on similarity of expression of specific genes in a pathway. We weight 
     this similarity based on differentially expressed genes between all leiden clusters.
     
@@ -920,8 +948,8 @@ def weighted_heatmap(adata, pathway_genes, pathway_pvals, num_clust, name, key =
         df = gene_expression_norm(adata, pathway_genes, partition_key = key)
     else:
         df = gene_expression(adata, pathway_genes, partition_key = key)
-    d = weight_dist(df, pathway_pvals)
-    L=sch.linkage(d, metric=metric, method='complete')
+    d = weight_dist(df, pathway_pvals, metric = metric)
+    L=sch.linkage(d, metric="euclidean", method='complete')
     linkage = sch.fcluster(L, num_clust,'maxclust')
     str_linkage = []
     for i in linkage:
