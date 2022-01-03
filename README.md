@@ -1,27 +1,22 @@
-# SURF2020
- This is a repository for my SURF code. 
- 
- The data files for the Jupyter notebooks are too big to upload here. For the forelimb dataset, the expression matrix is linked by the authors, but the kidney data (as a csv) is not available online so just contact me for it.
+# singlecellpipeline_SURF2020
+This is a repository for a simple scRNA-seq analysis pipeline in Python using the package Scanpy in addition to some supplementary functions (in `module.py`).
 
-Anaconda Environment Installation with environment.yml
-1. Navigate to the binder folder and download the environment.yml file
-2. conda env create -f environment.yml
-3. R # open R in command line
-4. install.packages("data.table", type = "source", repos = "https://Rdatatable.gitlab.io/data.table") # data.table has issues on CRAN repository, for now install from gitlab source code
-5. install.packages(c('devtools', 'gam', 'RColorBrewer', 'BiocManager', 'plotly'))
-6. update.packages(ask=F)
-7. BiocManager::install(c("scran", "MAST", "slingshot", "ComplexHeatmap", "Seurat", "tradeSeq", "DEsingle"), version="3.10") # BiocManager version 3.10 is compatible with R version 3.6.3
+In the tutorial (file `tutorial.ipynb`) I analyze a large forelimb developmental dataset [(He et al. 2020)](https://www.nature.com/articles/s41586-020-2536-x). The data files is too big to upload here, but are available from the authors to download on your own machine.
 
+This analysis only requires Python packages, which can be installed as below, or by creating an Anaconda environment from the `environment.yml` file.
 
-Anaconda Environment Manual Installation Instructions
-1. conda create --name env_surf -c conda-forge rpy2 (version 3.3.2, R version 3.6.3)
-2. conda install -c conda-forge pandas numpy=1.18.5 scipy scikit-learn jupyter gsl tzlocal simplegeneric natsort h5py tqdm patsy llvmlite numba networkx joblib numexpr pytables seaborn statsmodels
-3. conda install -c conda-forge python-igraph leidenalg
-4. pip install --upgrade pip
-5. pip install anndata anndata2ri fa2 gprofiler-official scanpy
-6. conda install -c r r-xml # R's xml version has issues currently, use conda
-7. R
-8. install.packages("data.table", type = "source", repos = "https://Rdatatable.gitlab.io/data.table") # data.table has issues on CRAN repository, for now install from gitlab source code
-9. install.packages(c('devtools', 'gam', 'RColorBrewer', 'BiocManager', 'plotly'))
-10. update.packages(ask=F)
-11. BiocManager::install(c("scran", "MAST", "slingshot", "ComplexHeatmap", "Seurat", "tradeSeq", "DEsingle"), version="3.10") # BiocManager version 3.10 is compatible with R version 3.6.3
+```
+conda create --name singlecellpipeline_SURF2020
+
+conda activate singlecellpipeline_SURF2020
+
+conda install seaborn scikit-learn statsmodels numba pytables
+conda install -c conda-forge python-igraph leidenalg
+pip install scanpy
+
+pip install jupyterlab
+conda install -c bokeh jupyter_bokeh
+conda install holoviews param panel colorcet
+
+pip install watermark blackcellmagic jupyterlab-spellchecker multiprocess
+```

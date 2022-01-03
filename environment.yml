@@ -1,0 +1,17 @@
+name: singlecellpipeline_SURF2020
+channels:
+  - defaults
+dependencies:
+  - statsmodels
+  - pytables
+  - scikit-learn
+  - seaborn
+  - numba
+  - python-igraph
+  - leidenalg
+  - jupyter_bokeh
+  - colorcet
+  - panel
+  - holoviews
+  - param
+  - jupyterlab
